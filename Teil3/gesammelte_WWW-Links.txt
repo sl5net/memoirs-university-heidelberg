@@ -1,0 +1,64 @@
+Bücher => Java
+http://www.hobsoft.de/books/java.htm
+
+
+----------------------------
+Heidi/Heidelberg:
+
+Zweigstelle Neuenheim / Freihandbereich Lehrbuchsammlung
+
+Shammas, Namir Clement: Visual C++ 2 in 21 Tagen
+LN-U 10-7736
+
+Stroustrup, Bjarne: ¬Die¬ C++-Programmiersprache
+LN-U 10-7710
+
+Signatur: LN-U 10-9868::(3))
+Autor: 	Krüger, Guido
+Titel: 	Handbuch der Java-Programmierung
+
+Signatur: LN-U 10-11359
+Signatur: LA-U 10-19220 (Altstadt)
+Autor: 	Arnold, Ken, Gosling, James,  Holmes, David
+Titel: 	¬Die¬ Programmiersprache Java
+
+Ausleihe (mit Freihandbereichen)
+Mo-Do 9:00-17:00
+Fr 9:00-15:30
+---------------------------
+
+Achte darauf, dass die JAR-Dateien (oder ZIP) in deinem
+Projekt-Pfad sind, damit eclipse weiss was du willst.
+(Rechtsklick auf dein Project -> Properties ->
+Java Build Path -> Libraries -> Add External JARs)
+
+Fuer DB2 7.1 muessen da z.B. db2java.zip und runtime.zip
+eingebunden sein.
+
+Habe runtime.jar gefunden.... 
+
+
+
+Java ist auch eine Insel - komplettes Buch
+http://www.galileocomputing.de/openbook/javainsel4/
+
+Superspassig und easy auch für Kimerly :))) !!
+Java Tutorial interaktiv — Programmieren lernen mit Java
+http://www.gailer-net.de/tutorials/java/java-toc.html
+
+
+http://www-dbs.informatik.uni-heidelberg.de/teaching/ws2005/dbpra1/index.shtml
+
+http://www-mmt.inf.tu-dresden.de/lehre/Wintersemester_02_03/Proseminar/RalfBorchers/folien.pdf
+
+
+Praktikum Datenbanken / DB2
+Woche 9: Transaktionskonzept, Java-Anbindung über JDBC
+http://www.is.informatik.uni-duisburg.de/teaching/lectures/dbp_ws03/material/woche09.pdf
+
+Jar- Dateien gefunden in:
+C:\Programme\_IBM\SQLLIB\java
+db2fs.jar, db2jcc.jar, db2jcc_license_cu.jar 
+
+C:\Programme\_IBM\SQLLIB\TOOLS
+db2md.jar, db2cc.jar, db2choc.jar, db2cmn.jar, db2das.jar, DB2DC.jar, db2debugrd.jar, db2dweti.jar, db2explain.jar, db2hcapi.jar, db2healthctr.jar, db2indbt.jar, db2jgraph.jar, db2journal.jar, db2launch.jar, db2ca.jar, db2memvis.jar, db2replapis.jar, db2replctr.jar, db2ssmonapis.jar, db2taskctr.jar, db2toolets.jar, db2vwcom.jar, db2vwddd.jar, db2WrapperDiscovery.jar, db2WrapperDiscoveryImpl.jar, db2_vw.jar

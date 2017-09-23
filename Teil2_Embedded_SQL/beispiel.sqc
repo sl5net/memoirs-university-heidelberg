@@ -1,0 +1,68 @@
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sqlenv.h>
+
+EXEC SQL INCLUDE SQLCA;
+
+
+main() {
+  char errorbuf[512];
+  int  counter;
+
+
+  EXEC SQL BEGIN DECLARE SECTION;
+    char   name[33];
+    double einwohner;
+    double bsp;
+    short  bspindicator;
+  EXEC SQL END DECLARE SECTION;
+  
+  EXEC SQL DECLARE C1 CURSOR FOR
+    SELECT name, DOUBLE(einwohner), DOUBLE(bsp)
+    FROM   land;
+  
+  EXEC SQL CONNECT TO DBPRAKT9;
+  
+  EXEC SQL OPEN C1;
+
+  counter = 0;
+  
+  /* solange noch Tupel da sind */
+  while(strncmp(sqlca.sqlstate, "02000", 5)) {	
+    
+    EXEC SQL FETCH C1
+      INTO :name, :einwohner, :bsp INDICATOR :bspindicator;
+    
+    if(strncmp(sqlca.sqlstate, "02000", 5)) {
+
+      /* kein Fehler, Ausgabe der Daten */
+      counter++;
+      printf("%s %12.0f", name, einwohner);
+      if(bspindicator >= 0) {
+	printf(" %12.0f\n", bsp);
+      }
+      else {
+	printf(" keine Angabe\n");
+      }
+    }
+    else {
+
+      /* Ausgabe der Fehlermeldung (Warnings unterdruecken) */
+      if((sqlca.sqlcode < 0) && 
+	 (sqlaintp(errorbuf, 512, 80, &sqlca) > 0)) {
+	printf("%s\n", errorbuf);
+      }
+    }
+  }       
+  
+  printf("%d Tupel gefunden\n", counter);
+
+  EXEC SQL CLOSE C1;
+  
+  EXEC SQL DISCONNECT test;
+
+  return 0;
+}
+

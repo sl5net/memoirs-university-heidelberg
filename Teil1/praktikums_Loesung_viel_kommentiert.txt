@@ -1,0 +1,715 @@
+Datenbankpraktikum WS 04/05
+Uni Heidelberg
+Gruppe 3(F)
+Yung, Körting, Laufer
+19.11.2004
+
+
+###############################
+###############################
+2.3.3.1
+###############################
+###############################
+
+Geben Sie alle Städte an, die ungefähr 100.000 Einwohner haben.
+
+Sortieren Sie die Städte 
+nach der Abweichung von dieser Einwohnerzahl 
+(Städte mit kleinerer Abweichung stehen weiter vorne in der Liste).
+
+Geben Sie alle Städte an, die um maximal 10.000 Einwohner von 100.000 Einwohnern abweichen.
+
+Überlegungen:
+-------------
+Erst mal wie gebe ich alle Städte mit genau 100.000 Einwohnern aus:
+SELECT * FROM STADT WHERE EINWOHNER = 100000 
+
+Wie gebe ich einen Bereich um die 100000 aus:
+SELECT * FROM STADT 
+WHERE 	EINWOHNER + 10000 >= 100000 
+AND	EINWOHNER - 10000 <= 100000 
+
+Wie sortiere ich nach der Abweigung:
+SELECT * FROM STADT ORDER BY ABS( EINWOHNER - 100000 ) 
+
+Zusätzlich noch die Abweichung ausgeben lassen:
+
+BTW. : Schade das 
+SELECT * , ABS( EINWOHNER - 100000 ) AS abweichung FROM STADT ORDER BY ABS( EINWOHNER - 100000 ) 
+zu Fehlermeldung führt:
+Auf "SELECT " folgte das unerwartete Token "*".  Zu den möglichen Token gehören: "?"
+
+Es geht aber:
+SELECT EINWOHNER , ABS( EINWOHNER - 100000 ) AS abweichung FROM STADT ORDER BY ABS( EINWOHNER - 100000 ) 
+
+Ich will, aber alle Informationen ausgeben grrrrr, kriegs nicht hin... 
+
+Naja, also Lösung der Aufgabe sollte sein:
+SELECT * FROM STADT 
+WHERE 	EINWOHNER + 10000 >= 100000 
+AND	EINWOHNER - 10000 <= 100000 
+ORDER BY ABS( EINWOHNER - 100000 ) 
+
+Die Angabe der Spalten ist natürlich auch schön:
+
+SELECT name, einwohner, ABS( EINWOHNER - 100000 ) AS abweichung  FROM STADT 
+WHERE 	EINWOHNER + 10000 >= 100000 
+AND	EINWOHNER - 10000 <= 100000 
+ORDER BY ABS( EINWOHNER - 100000 ) 
+
+Aber schade das nicht SELECT *, ABS( EINWOHNER - 100000 ) AS ... geht. In MySql geht das.
+
+NAME			EINWOHNER	ABWEICHUNG
+Springfield              	99637	-363
+Columbia                 	99296	-704
+Kingston                 	101000	1000
+Albany                   	101727	1727
+Orleans                  	102075	2075
+Oulu                     	97898	-2102
+Boise                    	102451	2451
+Namur                    	102510	2510
+Nancy                    	95945	-4055
+Stavanger                	95089	-4911
+Rouen                    	105100	5100
+Lahti                    	94234	-5766
+Santa_Rosa               	107000	7000
+Trenton                  	92124	-7876
+Abu_Dhabi                	92000	-8000
+Rayyan                   	91996	-8004
+Joenkoeping              	108235	8235
+Tepic                    	108900	8900
+Mons                     	90720	-9280
+Sucre                    	110000	10000
+
+
+###############################
+###############################
+2.3.3.2
+###############################
+###############################
+
+/* Das ist auch "Ähnlichkeit"
+
+select l.name, s.name
+ from land l, stadt s
+where l.hauptstadt  = s.s_id
+and soundex(s.name) = soundex(l.name) 
+*/
+
+Geben Sie alle Länder an, deren Hauptstadtname Ahnlichkeit mit dem Landesnamen hat.
+locate( <String Datentyp> s1,<String Datentyp> s2 ) -> Integer
+gibt die Position des ersten Auftauchens von String s2 in String s1 an.
+
+
+SELECT l.name AS Land, s.name AS Stadt
+FROM land l, stadt s
+WHERE l.hauptstadt  = s.s_id
+AND ( 	LOCATE(RTRIM(s.name), RTRIM( l.name)) > 0 
+    OR  LOCATE(RTRIM(l.name), RTRIM( s.name)) > 0   )
+
+LAND					STADT
+Andorra                         	Andorra_la_Vella         
+Guinea-Bissau                   	Bissau                   
+Guatemala                       	Ciudad_de_Guatemala      
+Panama                          	Ciudad_de_Panama         
+Djibuti                         	Djibuti                  
+Liechtenstein                   	Liechtenstein            
+Luxemburg                       	Luxemburg                
+Malediven                       	Male                     
+Monaco                          	Monaco-Ville             
+San_Marino                      	San_Marino               
+Sao_Tome_u_Principe             	Sao_Tome                 
+Singapur                        	Singapur                 
+Vatikanstadt                    	Vatikanstadt     
+
+###############################
+###############################
+2.3.3.3 a)
+###############################
+###############################
+
+Erzeugen Sie mit einer Sicht einen Auschnitt der Relation Stadt, 
+in der alle Städte mit mehr als fünf Millionen Einwohnern eingetragen sind. 
+Übernehmen Sie in die Sicht die Attribute S ID, Name und Einwohner. 
+
+Beschreiben Sie für die folgenden Operationen jeweils die Reaktionen des Datenbanksystems:
+
+(a) Fügen Sie eine Stadt mit mehr als fünf Millionen Einwohnern in die Sicht ein.
+Lassen Sie sich die Sicht ausgeben.
+
+create view stadtview ( s_id, name, einwohner) as
+select s_id, name, einwohner 
+from stadt
+where einwohner > 5000000    ;
+
+select * from stadtview
+
+S_ID	NAME	EINWOHNER
+316	Lima                     	5330000
+52	Bangkok                  	5446708
+475	Rio_de_Janeiro           	5615000
+325	London                   	6754500
+401	New_York                 	7071030
+153	Djakarta                 	7348000
+383	Moskau                   	8801000
+518	Seoul                    	9645824
+430	Peking                   	9900000
+513	Sao_Paulo                	10099100
+567	Tokyo                    	11750000
+519	Shanghai                 	11900000
+364	Mexico_City              	19400000
+
+
+###############################
+2.3.3.3 a)
+###############################
+Eine Stadt einfügen: 
+
+insert into stadtview (s_id, name, einwohner) 
+values (888, 'Hongkong', 6000000)
+
+
+Eine Stadt einfügen:
+
+###############################
+Sehr interessant:
+Dieser Insert geht einmal, aber nicht zweimal.... warum ??
+INSERT INTO stadtview (s_id, name, einwohner) 
+VALUES ( ( 
+SELECT MAX(S_ID)+99 
+FROM stadtview), 'TestStadt', 12345 )
+
+
+
+###############################
+
+
+SELECT s_id, name, einwohner FROM stadtview 
+FETCH FIRST 1 ROWS ONLY 
+
+select * from table limit 10 // MySQL 
+select * from (select * from table) where rownum <= 10 // Oracle 
+select * from table fetch first 10 rows only // DB2 
+select first 10 * from table // Informix 
+select top 10 * from table // Access
+
+select * from stadtview
+
+S_ID	NAME	EINWOHNER
+316	Lima                     	5330000
+52	Bangkok                  	5446708
+475	Rio_de_Janeiro           	5615000
+325	London                   	6754500
+401	New_York                 	7071030
+153	Djakarta                 	7348000
+383	Moskau                   	8801000
+518	Seoul                    	9645824
+430	Peking                   	9900000
+513	Sao_Paulo                	10099100
+567	Tokyo                    	11750000
+519	Shanghai                 	11900000
+364	Mexico_City              	19400000
+888	Hongkong                 	6000000
+
+b)
+delete  from stadtview where s_id = 888
+
+S_ID	NAME	EINWOHNER
+316	Lima                     	5330000
+52	Bangkok                  	5446708
+475	Rio_de_Janeiro           	5615000
+325	London                   	6754500
+401	New_York                 	7071030
+153	Djakarta                 	7348000
+383	Moskau                   	8801000
+518	Seoul                    	9645824
+430	Peking                   	9900000
+513	Sao_Paulo                	10099100
+567	Tokyo                    	11750000
+519	Shanghai                 	11900000
+364	Mexico_City              	19400000
+
+c)
+insert into stadtview (s_id, name, einwohner) 
+values (889, 'Macau', 200000)
+
+-> ok
+
+select * from stadtview
+
+S_ID	NAME	EINWOHNER
+316	Lima                     	5330000
+52	Bangkok                  	5446708
+475	Rio_de_Janeiro           	5615000
+325	London                   	6754500
+401	New_York                 	7071030
+153	Djakarta                 	7348000
+383	Moskau                   	8801000
+518	Seoul                    	9645824
+430	Peking                   	9900000
+513	Sao_Paulo                	10099100
+567	Tokyo                    	11750000
+519	Shanghai                 	11900000
+364	Mexico_City              	19400000
+
+select * from stadt where s_id > 620
+
+S_ID	NAME	EINWOHNER	LAENGE	BREITE
+621	Wladiwostok              	590000	131.54	43.07
+622	Wuhan                    	3500000	114.15	30.45
+623	Xian                     	1600000	109.00	34.00
+624	Xining                   	(null)	102.00	37.00
+625	Yaren                    	(null)	(null)	(null)
+626	Yellowknife              	8256	-114.20	62.30
+627	Yinchuan                 	(null)	106.20	38.30
+628	Zacatecas                	50251	-102.40	22.50
+629	Zhengzhou                	1050000	114.00	34.50
+889	Macau                    	200000	(null)	(null)
+
+Die Stadt wurde hinzugefügt, ist aber mit der View nicht sichtbar.
+
+d)
+insert into stadtview (s_id, name, einwohner) 
+values (888, 'Macau', 7000000)
+
+select * from stadtview
+
+S_ID	NAME	EINWOHNER
+316	Lima                     	5330000
+52	Bangkok                  	5446708
+475	Rio_de_Janeiro           	5615000
+325	London                   	6754500
+401	New_York                 	7071030
+153	Djakarta                 	7348000
+383	Moskau                   	8801000
+518	Seoul                    	9645824
+430	Peking                   	9900000
+513	Sao_Paulo                	10099100
+567	Tokyo                    	11750000
+519	Shanghai                 	11900000
+364	Mexico_City              	19400000
+888	Macau                    	7000000
+
+e)
+
+delete from stadtview where name = 'Macau'
+
+select * from stadtview
+
+
+S_ID	NAME	EINWOHNER
+316	Lima                     	5330000
+52	Bangkok                  	5446708
+475	Rio_de_Janeiro           	5615000
+325	London                   	6754500
+401	New_York                 	7071030
+153	Djakarta                 	7348000
+383	Moskau                   	8801000
+518	Seoul                    	9645824
+430	Peking                   	9900000
+513	Sao_Paulo                	10099100
+567	Tokyo                    	11750000
+519	Shanghai                 	11900000
+364	Mexico_City              	19400000
+
+select * from stadt where s_id > 620
+
+S_ID	NAME	EINWOHNER	LAENGE	BREITE
+621	Wladiwostok              	590000	131.54	43.07
+622	Wuhan                    	3500000	114.15	30.45
+623	Xian                     	1600000	109.00	34.00
+624	Xining                   	(null)	102.00	37.00
+625	Yaren                    	(null)	(null)	(null)
+626	Yellowknife              	8256	-114.20	62.30
+627	Yinchuan                 	(null)	106.20	38.30
+628	Zacatecas                	50251	-102.40	22.50
+629	Zhengzhou                	1050000	114.00	34.50
+889	Macau                    	200000	(null)	(null)
+
+Also die Stadt mit Einwohner > 5000000 wurde gelöscht!
+
+
+f)
+
+delete from stadt  where name = 'Macau'
+
+select * from stadt where s_id > 620
+
+S_ID	NAME	EINWOHNER	LAENGE	BREITE
+621	Wladiwostok              	590000	131.54	43.07
+622	Wuhan                    	3500000	114.15	30.45
+623	Xian                     	1600000	109.00	34.00
+624	Xining                   	(null)	102.00	37.00
+625	Yaren                    	(null)	(null)	(null)
+626	Yellowknife              	8256	-114.20	62.30
+627	Yinchuan                 	(null)	106.20	38.30
+628	Zacatecas                	50251	-102.40	22.50
+629	Zhengzhou                	1050000	114.00	34.50
+
+Damit ist auch die Stadt mit Einwohner = 200000 gelöscht.
+
+
+2.3.4.1 a)
+
+Bestimmen Sie die Bevölkerungsdichte der Region, die die Länder Algerien,
+Libyen und sämtliche Nachbarn dieser Länder umfaßt.
+
+
+
+
+
+
+
+
+
+Betroffene Region:
+
+WITH my_region (l_id) AS ( 
+SELECT l.l_id 
+FROM land l, benachbart b, land l2 
+WHERE l.l_id = b.l_id2 
+AND b.l_id1 = l2.l_id 
+AND (l2.name = 'Algerien' 
+OR l2.name = 'Libyen') 
+UNION SELECT l.l_id 
+FROM land l, benachbart b, land l2 
+WHERE l.l_id = b.l_id1 
+AND b.l_id2 = l2.l_id 
+AND (l2.name = 'Algerien' 
+OR l2.name = 'Libyen') ) 
+SELECT l.name AS name, l.einwohner AS einwohner, l.flaeche AS flaeche 
+FROM land l, my_region m 
+WHERE l.l_id = m.l_id
+
+NAME					EINWOHNER	FLAECHE
+Aegypten                        	42000000	1000000.00
+Algerien                        	19700000	2381000.00
+Libyen                          	3700000		1760000.00
+Mali                            	8700000		1240000.00
+Marokko                         	22500000	459000.00
+Mauretanien                     	2000000		1031000.00
+Niger                           	6600000		1267000.00
+Sahara                          	200000		266000.00
+Sudan                           	22200000	2505000.00
+Tschad                          	5100000		1284000.00
+Tunesien                        	7500000		164000.00
+
+2.3.4.1 b) Vergleichen Sie das Ergebnis mit der Bevolkerungsdichte die man erhalt, wenn
+man die Wusten als unbewohnbar berucksichtigt.
+
+Bevölkerungsdichte:
+
+with my_region (l_id) as (
+select l.l_id 
+from land l, benachbart b, land l2
+where l.l_id = b.l_id2
+and b.l_id1 = l2.l_id
+and (l2.name = 'Algerien' or l2.name = 'Libyen')
+union
+select l.l_id 
+from land l, benachbart b, land l2
+where l.l_id = b.l_id1
+and b.l_id2 = l2.l_id
+and (l2.name = 'Algerien' or l2.name = 'Libyen')
+)
+select sum(l.einwohner) as einwohner,
+sum(l.flaeche) as flaeche,
+sum(l.einwohner) / sum(l.flaeche) as bevoelkerungsdichte
+from land l, my_region m
+where l.l_id = m.l_id
+
+
+EINWOHNER	FLAECHE		BEVOELKERUNGSDICHTE
+140200000	13357000.00	10.496368945122407726
+
+
+b)
+
+Betroffenen Wüsten:
+
+with my_region (l_id) as 
+(
+select l.l_id 
+from land l, benachbart b, land l2
+where l.l_id = b.l_id2
+and b.l_id1 = l2.l_id
+and (l2.name = 'Algerien' or l2.name = 'Libyen')
+union
+select l.l_id 
+from land l, benachbart b, land l2
+where l.l_id = b.l_id1
+and b.l_id2 = l2.l_id
+and (l2.name = 'Algerien' or l2.name = 'Libyen')
+),
+my_wueste (w_id)  as 
+(
+select distinct  g.w_id
+from my_region l, landesteil lt, geo_wueste g
+where lt.lt_id = g.lt_id
+and l.l_id = lt.l_id 
+)
+select w.name, w.flaeche
+from my_wueste mw, wueste w
+where mw.w_id = w.w_id
+
+
+NAME				FLAECHE
+Arabische_Wueste         	50000.00
+Asauad                   	35000.00
+Dschurab                 	15000.00
+Erg_Igidi                	35000.00
+Erg_Rebiana              	30000.00
+Erg_Schesch              	45000.00
+Fesan                    	130000.00
+Grosser_Erg_von_Bilma    	25000.00
+Hamada_des_Draa          	20000.00
+Hamada_el-Hamra          	20000.00
+Libysche_Wueste          	190000.00
+Makteir                  	25000.00
+Nubische_Wueste          	30000.00
+Oestl._Grosser_Erg       	70000.00
+Sagia_el-Hamra           	15000.00
+Tanesruft                	30000.00
+Tenere                   	70000.00
+Trarza                   	25000.00
+Uaran                    	20000.00
+Westl._Grosser_Erg       	40000.00
+
+Summe der Wüsten-Fläche:
+
+flaeche
+920000.00
+
+Bevölkerungsdichte abzüglich Wüsten:
+
+with my_region (l_id) as 
+(
+select l.l_id 
+from land l, benachbart b, land l2
+where l.l_id = b.l_id2
+and b.l_id1 = l2.l_id
+and (l2.name = 'Algerien' or l2.name = 'Libyen')
+union
+select l.l_id 
+from land l, benachbart b, land l2
+where l.l_id = b.l_id1
+and b.l_id2 = l2.l_id
+and (l2.name = 'Algerien' or l2.name = 'Libyen')
+),
+my_wueste (w_id)  as 
+(
+select distinct  g.w_id
+from my_region l, landesteil lt, geo_wueste g
+where lt.lt_id = g.lt_id
+and l.l_id = lt.l_id 
+),
+my_summe (einwohner, flaeche, flaeche_wueste) as
+(
+select l.einwohner,
+l.flaeche,
+0
+from land l, my_region m
+where l.l_id = m.l_id
+union all
+select 0, 0,  w.flaeche
+from my_wueste mw, wueste w
+where mw.w_id = w.w_id
+)
+select sum(einwohner) as einwohner,
+sum(flaeche) as flaeche,
+sum(flaeche_wueste)  as flaeche_wueste,
+sum(einwohner) / (sum(flaeche)-sum(flaeche_wueste)) as bevoelkerungsdichte
+from my_summe
+
+EINWOHNER	FLAECHE		FLAECHE_WUESTE	BEVOELKERUNGSDICHTE
+140200000	13357000.00	920000.00	11.272814987537187424
+
+
+2.3.4.2
+
+Alle Länder-Paare in Europa:
+
+with europa (l_id, l_name) as
+(
+select l.l_id, l.name
+from land l, umfasst u, kontinent k
+where l.l_id = u.l_id
+and u.k_id = k.k_id
+and k.name = 'Europa'
+)
+select l1.name, l2.name
+from benachbart b, land l1, land l2
+where b.l_id1 = l1.l_id and b.l_id2 = l2.l_id
+and b.l_id1 in (select l_id  from europa)
+and b.l_id2  in (select l_id  from europa)
+
+...57 Paare
+
+Zuordnung Land und Meer:
+
+with land_meer (l_id, name)  as
+(
+select l.l_id, g.name
+from land l, landesteil lt, geo_gewaesser gg, gewaesser g, meer m
+where l.l_id = lt.l_id
+and lt.lt_id = gg.lt_id
+and gg.g_id = g.g_id
+and g.g_id = m.g_id
+group by l.l_id, g.name
+)
+select l.name, m.name
+ from land_meer m, land l
+where m.l_id = l.l_id
+
+
+Eine mögliche Lösung:
+
+with europa (l_id, l_name) as
+(
+select l.l_id, l.name
+from land l, umfasst u, kontinent k
+where l.l_id = u.l_id
+and u.k_id = k.k_id
+and k.name = 'Europa'
+),
+europa_paare (l_id1, l_id2) as
+(
+select l_id1, l_id2
+from benachbart b
+where b.l_id1 in (select l_id  from europa)
+and b.l_id2  in (select l_id  from europa)
+),
+land_meer (l_id, name)  as
+(
+select l.l_id, g.name
+from land l, landesteil lt, geo_gewaesser gg, gewaesser g, meer m
+where l.l_id = lt.l_id
+and lt.lt_id = gg.lt_id
+and gg.g_id = g.g_id
+and g.g_id = m.g_id
+group by l.l_id, g.name
+)
+
+select l1.l_id,  l1.name, l2.l_id, l2.name
+ from land l1, land l2, europa_paare e
+where l1.l_id = e.l_id1
+and l2.l_id = e.l_id2
+
+and not exists (
+select m1.name
+from land_meer m1
+where m1.l_id = e.l_id1
+except all
+select m2.name
+from land_meer m2
+where m2.l_id = e.l_id2
+)
+and  not exists (
+select m3.name
+from land_meer m3
+where m3.l_id = e.l_id2
+except all
+select m4.name
+from land_meer m4
+where m4.l_id = e.l_id1
+)
+and  exists (
+select m5.name
+from land_meer m5
+where m5.l_id = e.l_id1
+)
+
+
+L_ID	NAME					L_ID	NAME
+5	Albanien                        	66	Jugoslawien                     
+5	Albanien                        	46	Griechenland                    
+46	Griechenland                    	66	Jugoslawien                     
+61	Italien                         	66	Jugoslawien                     
+15	Belgien                         	107	Niederlande                     
+32	Deutsche_Demokratische_Republik 	120	Polen                           
+25	Bulgarien                       	123	Rumaenien                       
+133	Schweden                        	40	Finnland                                             
+
+
+2.3.4.3
+
+a)
+
+Theoretisch muss man alle möglichen Verbindungen durchrechnen, das ist bei einem rückgekoppelten Netz nicht möglich -> endlosschleife.
+Daher wird hier die Zahl der Umstiegen wird auf 5 gesetzt.
+
+with flug_ny ( flug_id, flug_strecke, fh_strecke, umstieg, abflugfh_id, ankunftfh_id, preis, sum_preis) as (
+(
+select f.flug_id, 
+cast(cast(f.flug_id as char(3)) as varchar(100)), 
+cast(cast(f.abflugfh_id as char(3)) as varchar(100)) || '->' || cast(cast(f.ankunftfh_id as char(3)) as varchar(100)), 
+1, f.abflugfh_id, f.ankunftfh_id, f.preis, f.preis
+from flug f, flughafen fh, stadt s
+where f.abflugfh_id = fh.fh_id and fh.s_id = s.s_id and s.name = 'Kapstadt'
+) union all (
+select f1.flug_id, 
+fny.flug_strecke || '->' || cast(cast(f1.flug_id as char(3)) as varchar(100)), 
+fny.fh_strecke || '->' || cast(cast(f1.ankunftfh_id as char(3)) as varchar(100)), 
+fny.umstieg+1, f1.abflugfh_id, f1.ankunftfh_id, f1.preis, f1.preis + fny.sum_preis
+from flug f1, flug_ny fny  /*, flughafen fh1, stadt s1*/
+where f1.abflugfh_id = fny.ankunftfh_id 
+/*and f1.ankunftfh_id = fh1.fh_id and fh1.s_id = s1.s_id and s1.name = 'New_York'*/
+and umstieg < 5
+)
+)
+select flug_strecke, fh_strecke, umstieg, code as ankunft_fh, sum_preis as gesamt_preis
+from flug_ny fny2, flughafen fh2, stadt s2
+where  fny2.ankunftfh_id = fh2.fh_id and fh2.s_id = s2.s_id and s2.name = 'New_York' 
+and sum_preis = 
+(
+select min(sum_preis)
+from flug_ny fny2, flughafen fh2, stadt s2
+where  fny2.ankunftfh_id = fh2.fh_id and fh2.s_id = s2.s_id and s2.name = 'New_York' 
+)
+
+
+
+FLUG_STRECKE	FH_STRECKE	UMSTIEG	ANKUNFT_FH	GESAMT_PREIS
+34 ->7  	1  ->2  ->3  	2	JFK		1673.00
+
+
+
+b)
+
+Die Abbruchbedingung aus der Rekursion kann man hier direkt angaben, da hier die Verbindung mit den wenigsten Umstiegen gesucht wird.
+
+
+with flug_ny ( flug_id, flug_strecke, fh_strecke, umstieg, abflugfh_id, ankunftfh_id, preis, sum_preis) as (
+(
+select f.flug_id, 
+cast(cast(f.flug_id as char(3)) as varchar(100)), 
+cast(cast(f.abflugfh_id as char(3)) as varchar(100)) || '->' || cast(cast(f.ankunftfh_id as char(3)) as varchar(100)), 
+1, f.abflugfh_id, f.ankunftfh_id, f.preis, f.preis
+from flug f, flughafen fh, stadt s
+where f.abflugfh_id = fh.fh_id and fh.s_id = s.s_id and s.name = 'Frankfurt'
+) union all (
+select f1.flug_id, 
+fny.flug_strecke || '->' || cast(cast(f1.flug_id as char(3)) as varchar(100)), 
+fny.fh_strecke || '->' || cast(cast(f1.ankunftfh_id as char(3)) as varchar(100)), 
+fny.umstieg+1, f1.abflugfh_id, f1.ankunftfh_id, f1.preis, f1.preis + fny.sum_preis
+from flug f1, flug_ny fny, flughafen fh1, stadt s1
+where f1.abflugfh_id = fny.ankunftfh_id 
+and f1.ankunftfh_id = fh1.fh_id and fh1.s_id = s1.s_id and s1.name = 'Los_Angeles'
+/*and umstieg < 5 */
+)
+)
+select flug_strecke, fh_strecke, umstieg, code as ankunft_fh, sum_preis as gesamt_preis
+from flug_ny fny2, flughafen fh2, stadt s2
+where  fny2.ankunftfh_id = fh2.fh_id and fh2.s_id = s2.s_id and s2.name = 'Los_Angeles' 
+and sum_preis = 
+(
+select min(sum_preis)
+from flug_ny fny2, flughafen fh2, stadt s2
+where  fny2.ankunftfh_id = fh2.fh_id and fh2.s_id = s2.s_id and s2.name = 'Los_Angeles' 
+)
+
+
+
+FLUG_STRECKE	FH_STRECKE	UMSTIEG	ANKUNFT_FH	GESAMT_PREIS
+7  ->2  	2  ->3  ->4  	2	LAX		1920.00
+

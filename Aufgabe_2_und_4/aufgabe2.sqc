@@ -1,0 +1,222 @@
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sqlenv.h>
+#include <math.h>
+
+#define ERDRADIUS 6371.032
+#define PI 3.141592654
+char errorbuf[512];
+
+EXEC SQL INCLUDE SQLCA;
+
+int checkCity(char *city, double *pLaenge, double *pBreite) {
+  
+  int counter = 0;
+
+  EXEC SQL BEGIN DECLARE SECTION;
+    char   cityName[33];
+    char   tmpName[33];
+    short  sid;
+    double laenge;
+    short  laengeIndicator;
+    double breite;
+    short  breiteIndicator;
+  EXEC SQL END DECLARE SECTION;
+
+  strcpy(cityName, city);
+
+  EXEC SQL DECLARE C_STADT CURSOR FOR
+    SELECT s_id, name, DOUBLE(laenge), DOUBLE(breite)
+    FROM   stadt
+    WHERE  name = :cityName;
+  EXEC SQL OPEN C_STADT;
+
+  counter = 0;
+  
+  /* solange noch Tupel da sind */
+  while(strncmp(sqlca.sqlstate, "02000", 5)) {	
+    
+    EXEC SQL FETCH C_STADT
+      INTO :sid, :tmpName, :laenge INDICATOR :laengeIndicator,
+           :breite INDICATOR :breiteIndicator;
+    
+    if(strncmp(sqlca.sqlstate, "02000", 5)) {
+      /* kein Fehler */
+      counter++; 
+      printf("=>: %d %s %10.2f %10.2f\n", sid, tmpName, laenge, breite);
+      *(pLaenge) = laenge;
+      *(pBreite) = breite;
+    } else {
+      if((sqlca.sqlcode < 0) && (sqlaintp(errorbuf, 512, 80, &sqlca) > 0)) {
+        printf("\n%s\n", errorbuf);
+      }
+    }
+  }       
+  
+  EXEC SQL CLOSE C_STADT;
+  if (counter==1 && laengeIndicator>=0 && breiteIndicator>=0) {
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
+double rad(double x) {
+  return x * ((2 * PI) / 360);
+}
+
+int distance() {
+  char stadt1[26];
+  double laenge1;
+  double breite1;
+  char stadt2[26];
+  double laenge2;
+  double breite2;
+  double entfernung;
+  double x1, x2, y1, y2, z1, z2;
+  int city1_OK, city2_OK;
+
+  printf("1. Stadt: ");
+  scanf("%s", stadt1);
+  printf("2. Stadt: ");
+  scanf("%s", stadt2);
+
+  if (city1_OK=checkCity(stadt1, &laenge1, &breite1) ) {
+    printf("Stadt %s ok! Laenge: %10.2f Breite: %10.2f\n", 
+           stadt1, laenge1, breite1);
+  } else {
+    printf("Stadt %s nicht ok\n", stadt1);
+  }
+  if (city2_OK=checkCity(stadt2, &laenge2, &breite2) ) {
+    printf("Stadt %s ok! Laenge: %10.2f Breite: %10.2f\n", 
+            stadt2, laenge2, breite2);
+  } else {
+    printf("Stadt %s nicht ok\n", stadt2);
+  }
+  if (city1_OK && city2_OK) {
+    x1 = cos(rad(breite1)) * cos(rad(laenge1));
+    x2 = cos(rad(breite2)) * cos(rad(laenge2));
+    y1 = cos(rad(breite1)) * sin(rad(laenge1));
+    y2 = cos(rad(breite2)) * sin(rad(laenge2));
+    z1 = sin(rad(breite1));
+    z2 = sin(rad(breite2));
+    entfernung = acos(x1*x2 + y1*y2 + z1*z2) * ERDRADIUS;
+    printf("\nEntfernung: %10.2f\n\n", entfernung);
+  }
+}
+
+void insert() {
+  char tmpStr[100];
+  EXEC SQL BEGIN DECLARE SECTION;
+    short ins_s_id;
+    char ins_name[26];
+    long ins_einwohner;
+    double ins_laenge;
+    double ins_breite;
+  EXEC SQL END DECLARE SECTION;
+  
+  printf("Insert\n\n");
+  
+  printf("S_ID: ");
+  scanf("%s", tmpStr);
+  ins_s_id = atoi(tmpStr);
+  printf("Stadt: ");
+  scanf("%s", ins_name);
+  printf("Einwohner: ");
+  scanf("%s", tmpStr);
+  ins_einwohner = atol(tmpStr);
+  printf("Laenge: ");
+  scanf("%s", tmpStr);
+  ins_laenge = atof(tmpStr);
+  printf("Breite: ");
+  scanf("%s", tmpStr);
+  ins_breite = atof(tmpStr);
+
+  printf("Insert: Stadt: %s, S_ID: %d, Laenge: %10.2f Breite: %10.2f\n", 
+            ins_name, ins_s_id, ins_laenge, ins_breite);
+    
+  EXEC SQL INSERT INTO stadt 
+      VALUES(:ins_s_id, :ins_name, :ins_einwohner, :ins_laenge, :ins_breite);
+
+  if((sqlca.sqlcode < 0) && 
+      (sqlaintp(errorbuf, 512, 80, &sqlca) > 0)) {
+      printf("\n%s\n", errorbuf);
+  }
+  
+  EXEC SQL COMMIT;
+}
+
+void update() {
+  char tmpStr[100];
+  EXEC SQL BEGIN DECLARE SECTION;
+    short upd_s_id;
+    double upd_laenge;
+    double upd_breite;
+  EXEC SQL END DECLARE SECTION;
+  
+  printf("Update\n\n");
+  
+  printf("S_ID: ");
+  scanf("%s", tmpStr);
+  upd_s_id = atoi(tmpStr);
+  printf("Laenge: ");
+  scanf("%s", tmpStr);
+  upd_laenge = atof(tmpStr);
+  printf("Breite: ");
+  scanf("%s", tmpStr);
+  upd_breite = atof(tmpStr);
+
+  printf("Update: S_ID: %d, Laenge: %10.2f Breite: %10.2f\n", 
+            upd_s_id, upd_laenge, upd_breite);
+    
+
+  EXEC SQL UPDATE stadt SET laenge = :upd_laenge, breite = :upd_breite
+           WHERE s_id = :upd_s_id;
+
+  if((sqlca.sqlcode < 0) && 
+      (sqlaintp(errorbuf, 512, 80, &sqlca) > 0)) {
+      printf("\n%s\n", errorbuf);
+  }
+   
+   
+  EXEC SQL COMMIT;
+
+}
+
+int loop() {
+  int action = 0;
+  int exit = 0;
+  
+  while (!exit) {
+    printf("\n\n[1] Entfernung  [2] Insert  [3] Update  [4] Exit\n\n");
+    scanf("%d", &action);
+  
+    switch(action) {
+      case 1:
+        distance();
+        break;
+      case 2:
+        insert();
+        break;
+      case 3:
+        update();
+        break;
+      case 4:
+        exit = 1;
+        break;
+    }
+  }
+}
+
+int main() {
+  EXEC SQL CONNECT TO TEST; 
+  
+  loop();
+
+  EXEC SQL DISCONNECT TEST;
+
+  return 0;
+}
+
